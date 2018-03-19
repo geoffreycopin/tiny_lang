@@ -18,5 +18,9 @@ rule token = parse
   | ')'		   { RPAR }
   | "bool"         { BOOL }
   | "int"	   { INT }
+  | '*'            { STAR }
+  | "->"           { ARROW }
+  | ':'            { COLON }
+  | ','            { COMMA }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']* as lxm { IDENT(lxm) }
   | eof		   { raise Eof }

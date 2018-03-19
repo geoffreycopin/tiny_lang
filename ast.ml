@@ -1,7 +1,10 @@
 exception OpConversion of string
 
-type op = Add | Mul | Sub | Div
+type apsType = Int | Bool | ArrowType of apsFuncType * apsType
+and apsFuncType = Empty | FuncType of apsType * apsFuncType
 
+type op = Add | Mul | Sub | Div			      
+			      
 let string_of_op op =
   match op with
   | Add -> "add"
@@ -17,7 +20,10 @@ let op_of_string op =
   | "div" -> Div
   | _ -> raise (OpConversion op)
 
+type arg = Arg of string * apsType
 
+type args = Args of arg	* args | EmptyArg	     
+			     
 type expr =
   ASTNum of int
 | ASTId of string
@@ -26,7 +32,7 @@ type expr =
 | ASTIf of expr * expr * expr
 | ASTExpressions of expr * expr
 | ASTEmpty
-
+	       
 let is_empty ast =
   match ast with
   | ASTEmpty -> false

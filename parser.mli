@@ -11,6 +11,12 @@ type token =
   | LPAR
   | RPAR
   | EOL
+  | BOOL
+  | INT
+  | STAR
+  | ARROW
+  | COLON
+  | COMMA
 
-val line :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.expr
+val args :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.args
