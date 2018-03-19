@@ -79,7 +79,8 @@ let print_args a =
   in
   match a with
   | EmptyArg -> ()
-  | Args(h, t) -> print_args_rec h t
+  | Args(h, t) -> print_args_rec h t;
+  print_string "]"
 							
 let () =
   try

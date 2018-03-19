@@ -18,6 +18,7 @@
 
 %type <Ast.expr> line
 %type <Ast.apsType> simpleType
+%type <Ast.arg> arg
 %type <Ast.args> args				       
 %type <Ast.expr> expr
 		   
@@ -55,8 +56,14 @@ types:
   | simpleType STAR types         { Ast.FuncType($1, $3) }
 ;
 
+arg:
+    IDENT COLON simpleType        { Ast.Arg($1, $3) }
+;
+
 args:
-    IDENT COLON simpleType        { Ast.Args(Ast.Arg($1, $3), Ast.EmptyArg) }
-  | IDENT COLON simpleType COMMA args { Ast.Args(Ast.Arg($1, $3), $5) } 
+    arg                           { Ast.Args($1, Ast.EmptyArg) }
+ // arg EOL                       { Ast.args($1, Ast.emptyArg) } pour tester la règle
+ // seule 
+  | arg COMMA args                { Ast.Args($1, $3) } 
 ;     
       
