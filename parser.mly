@@ -18,7 +18,7 @@
 %token REC
 %token ECHO
        
-%start prog
+%start expr
 
 %type <Ast.expr> line
 %type <Ast.apsType> simpleType
