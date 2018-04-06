@@ -7,7 +7,7 @@ let rec print_prolog e =
   | ASTId(id) -> Printf.printf "%s" id
   | ASTIf(cond, cons, alt) -> print_if cons cond alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
-  | ASTExpressions(first, next) -> print_expressions first next;
+  | ASTApplication(first, next) -> print_application first next;
   | ASTEmpty -> ()
 
 and print_prim op e1 e2 =
@@ -26,16 +26,16 @@ and print_if cond cons alt =
   print_prolog alt;
   Printf.printf ")"
 
-and print_expressions first next =
-  print_string "seq(";
-  let rec print_expressions_rec first next =
+and print_application first next =
+  print_string "app(";
+  let rec print_application_rec first next =
     print_prolog first;
     match next with
     | ASTEmpty -> ()
-    | ASTExpressions (h, t) -> print_string ", "; print_expressions_rec h t
+    | ASTApplication (h, t) -> print_string ", "; print_application_rec h t
     | _ as e -> print_prolog e
   in
-  print_expressions_rec first next;
+  print_application_rec first next;
   print_string ")"
 
 let rec print_type t =
@@ -80,12 +80,56 @@ let print_args a =
   match a with
   | EmptyArg -> ()
   | Args(h, t) -> print_args_rec h t;
+		  print_string "]"
+			       
+let print_dec d =
+  match d with
+  | Const(id, t, e) -> print_string "const(";
+		       print_string (id ^ ", ");
+		       print_type t;
+		       print_string ", ";
+		       print_prolog e;
+	               print_string ")"
+  | Fun(id, t, a, e) -> print_string "fun(";
+		        print_string (id ^ ", ");
+		        print_type t;
+			print_string ", ";
+		        print_args a;
+			print_string ", ";
+		        print_prolog e;
+		        print_string ")"
+  | FunRec(id, t, a, e) -> print_string "funRec(";
+			   print_string (id ^ ", ");
+			   print_type t;
+			   print_string ", ";
+			   print_args a;
+			   print_string ", ";
+			   print_prolog e;
+			   print_string ")"
+
+let print_stat s =
+  let Echo(e) = s in
+  print_string "echo(";
+  print_prolog e;
+  print_string ")"
+
+let print_commands c =
+  print_string "[";
+  let rec print_commands_rec c =
+    match c with
+    | EmptyCmd -> ()
+    | StatCmd(s, EmptyCmd) -> print_stat s		    
+    | StatCmd(s, next) -> print_stat s; print_string ", "; print_commands_rec next
+    | DecCmd(d, next)	-> print_dec d; print_string ", "; print_commands_rec next
+  in
+  print_commands_rec c;
   print_string "]"
-							
+											    
+    
 let () =
   try
     let lexbuf = Lexing.from_channel stdin in
-    let e = Parser.args Lexer.token lexbuf in
-    print_args e;
+    let e = Parser.prog Lexer.token lexbuf in
+    print_commands e;
     print_char '\n'
   with Lexer.Eof -> exit 0

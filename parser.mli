@@ -10,13 +10,20 @@ type token =
   | DIV
   | LPAR
   | RPAR
+  | LBRACK
+  | RBRACK
   | EOL
   | BOOL
   | INT
   | STAR
   | ARROW
   | COLON
+  | SEMICOLON
   | COMMA
+  | CONST
+  | FUN
+  | REC
+  | ECHO
 
-val args :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.args
+val prog :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmds

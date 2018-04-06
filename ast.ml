@@ -30,10 +30,20 @@ type expr =
 | ASTBool of bool
 | ASTPrim of op * expr * expr
 | ASTIf of expr * expr * expr
-| ASTExpressions of expr * expr
+| ASTApplication of expr * expr
 | ASTEmpty
 	       
 let is_empty ast =
   match ast with
   | ASTEmpty -> false
   | _ -> true
+
+type dec =
+    Const of string * apsType * expr
+  | Fun of string * apsType * args * expr
+  | FunRec of string * apsType * args * expr
+
+type stat = Echo of expr
+
+type cmds =  StatCmd of stat * cmds | DecCmd of dec * cmds | EmptyCmd 
+					      
