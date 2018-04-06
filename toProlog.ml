@@ -8,6 +8,7 @@ let rec print_prolog e =
   | ASTIf(cond, cons, alt) -> print_if cons cond alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
   | ASTApplication(first, next) -> print_application first next;
+  | ASTAbs(args, expr) -> print_abs args expr
   | ASTEmpty -> ()
 
 and print_prim op e1 e2 =
@@ -38,7 +39,7 @@ and print_application first next =
   print_application_rec first next;
   print_string ")"
 
-let rec print_type t =
+and print_type t =
   match t with
   | Int -> print_string "int"
   | Bool -> print_string "bool"
@@ -61,7 +62,7 @@ and print_types t =
   | Empty -> ()
   | FuncType(h, t) -> print_types_rec h t; print_string "]"       
 
-let print_arg a =
+and print_arg a =
   let Arg(ident, t) = a in
   print_string "(";
   print_string ident;
@@ -69,7 +70,7 @@ let print_arg a =
   print_type t;
   print_string ")"
       
-let print_args a =
+and print_args a =
   print_string "[";
   let rec print_args_rec head tail =
     print_arg head;
@@ -81,6 +82,13 @@ let print_args a =
   | EmptyArg -> ()
   | Args(h, t) -> print_args_rec h t;
 		  print_string "]"
+
+and print_abs a e =
+  print_string "abs(";
+  print_args a;
+  print_string ", ";
+  print_prolog e;
+  print_string ")"
 			       
 let print_dec d =
   match d with

@@ -47,6 +47,7 @@ expr:
   | LPAR MINUS expr expr RPAR     { ASTPrim(Ast.Sub, $3, $4) }
   | LPAR TIMES expr expr RPAR     { ASTPrim(Ast.Mul, $3, $4) }
   | LPAR DIV expr expr RPAR       { ASTPrim(Ast.Div, $3, $4) }
+  | LBRACK args RBRACK expr       { ASTAbs($2, $4) }
 
 exprs:
     expr                          { ASTApplication($1, ASTEmpty) } 

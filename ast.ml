@@ -31,6 +31,7 @@ type expr =
 | ASTPrim of op * expr * expr
 | ASTIf of expr * expr * expr
 | ASTApplication of expr * expr
+| ASTAbs of args * expr
 | ASTEmpty
 	       
 let is_empty ast =
