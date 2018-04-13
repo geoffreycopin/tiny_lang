@@ -2,3 +2,9 @@
 *.cmi
 
 *.cmo
+
+eval
+
+lexer\.ml
+
+\.#eval\.ml
