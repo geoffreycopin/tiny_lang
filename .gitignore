@@ -8,3 +8,5 @@ eval
 lexer\.ml
 
 \.#eval\.ml
+
+*.ml#
