@@ -1,4 +1,5 @@
 type token =
+  | STAR
   | NUM of (int)
   | IDENT of (string)
   | TRUE
@@ -20,7 +21,6 @@ type token =
   | EOL
   | BOOL
   | INT
-  | STAR
   | ARROW
   | COLON
   | SEMICOLON
@@ -31,4 +31,4 @@ type token =
   | ECHO
 
 val prog :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmds
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmd list

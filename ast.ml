@@ -1,7 +1,6 @@
 exception OpConversion of string
 
-type apsType = Int | Bool | ArrowType of apsFuncType * apsType
-and apsFuncType = Empty | FuncType of apsType * apsFuncType
+type apsType = Int | Bool | ArrowType of apsType list * apsType
 
 type op = Add | Mul | Sub | Div	| Eq | Lt | Not | And | Or		      
 			      
@@ -32,7 +31,7 @@ let op_of_string op =
 
 type arg = Arg of string * apsType
 
-type args = Args of arg	* args | EmptyArg	     
+let type_of_arg a = let Arg(_, t) = a in t
 			     
 type expr =
   ASTNum of int
@@ -42,7 +41,7 @@ type expr =
 | ASTNot of expr
 | ASTIf of expr * expr * expr
 | ASTApplication of expr * expr
-| ASTAbs of args * expr
+| ASTAbs of arg list * expr
 | ASTEmpty
 	       
 let is_empty ast =
@@ -52,10 +51,16 @@ let is_empty ast =
 
 type dec =
     Const of string * apsType * expr
-  | Fun of string * apsType * args * expr
-  | FunRec of string * apsType * args * expr
+  | Fun of string * apsType * arg list * expr
+  | FunRec of string * apsType * arg list * expr
+  
+let rec args_type args =
+  List.map (type_of_arg) args
+
+let fun_type t args =
+  ArrowType((args_type args), t)
 
 type stat = Echo of expr
 
-type cmds =  StatCmd of stat * cmds | DecCmd of dec * cmds | EmptyCmd 
+type cmd =  StatCmd of stat | DecCmd of dec
 					      

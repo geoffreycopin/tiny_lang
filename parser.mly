@@ -2,6 +2,7 @@
     open Ast
 %}
 
+%token STAR
 %token <int> NUM
 %token <string> IDENT
 %token TRUE FALSE
@@ -20,16 +21,16 @@
        
 %start prog
 
-%type <Ast.cmds> line
+%type <Ast.cmd list> line
 %type <Ast.apsType> simpleType
-%type <Ast.apsFuncType> types
-%type <Ast.arg> arg
-%type <Ast.args> args				       
+%type <Ast.apsType list> types
+%type <Ast.arg list> args
+%type <Ast.arg> arg				       
 %type <Ast.expr> expr
 %type <Ast.dec> dec
 %type <Ast.stat> stat
-%type <Ast.cmds> cmds				   
-%type <Ast.cmds> prog
+%type <Ast.cmd list> cmds				   
+%type <Ast.cmd list> prog
 		   
 %%
   
@@ -67,8 +68,8 @@ simpleType:
 ;
 
 types:
-    simpleType                   { Ast.FuncType($1, Ast.Empty) }
-  | simpleType TIMES types        { Ast.FuncType($1, $3) }
+    simpleType                   { [ $1 ] }
+  | simpleType STAR types        { $1::$3 }
 ;
 
 arg:
@@ -76,8 +77,8 @@ arg:
 ;
 
 args:
-    arg                           { Ast.Args($1, Ast.EmptyArg) }
-  | arg COMMA args                { Ast.Args($1, $3) } 
+    arg                           { [ $1 ] }
+  | arg COMMA args                { $1::$3 } 
   ;
 
 dec:
@@ -91,9 +92,9 @@ stat:
   ;
 
 cmds:
-    stat                                 { Ast.StatCmd($1, Ast.EmptyCmd) }
-  | dec SEMICOLON cmds                   { Ast.DecCmd ($1, $3) }
-  | stat SEMICOLON cmds                  { Ast.StatCmd($1, $3) }
+    stat                                 { [ Ast.StatCmd($1)] }
+  | dec SEMICOLON cmds                   { Ast.DecCmd($1)::$3 }
+  | stat SEMICOLON cmds                  { Ast.StatCmd($1)::$3 }
   ;
 
 prog:
