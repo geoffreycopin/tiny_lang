@@ -6,7 +6,7 @@
 %token <string> IDENT
 %token TRUE FALSE
 %token IF
-%token PLUS MINUS TIMES DIV
+%token PLUS MINUS TIMES DIV EQ LT NOT AND OR
 %token LPAR RPAR LBRACK RBRACK
 %token EOL
 %token BOOL INT 
@@ -18,10 +18,11 @@
 %token REC
 %token ECHO
        
-%start expr
+%start prog
 
-%type <Ast.expr> line
+%type <Ast.cmds> line
 %type <Ast.apsType> simpleType
+%type <Ast.apsFuncType> types
 %type <Ast.arg> arg
 %type <Ast.args> args				       
 %type <Ast.expr> expr
@@ -33,7 +34,7 @@
 %%
   
 line:
-expr EOL                     { $1 }
+prog EOL                     { $1 }
 ;
 
 expr:
@@ -47,6 +48,11 @@ expr:
   | LPAR MINUS expr expr RPAR     { ASTPrim(Ast.Sub, $3, $4) }
   | LPAR TIMES expr expr RPAR     { ASTPrim(Ast.Mul, $3, $4) }
   | LPAR DIV expr expr RPAR       { ASTPrim(Ast.Div, $3, $4) }
+  | LPAR EQ expr expr RPAR        { ASTPrim(Ast.Eq, $3, $4) }
+  | LPAR LT expr expr RPAR        { ASTPrim(Ast.Lt, $3, $4) }
+  | LPAR AND expr expr RPAR       { ASTPrim(Ast.And, $3, $4) }
+  | LPAR OR expr expr RPAR        { ASTPrim(Ast.Or, $3, $4) }
+  | LPAR NOT expr RPAR            { ASTNot($3) }
   | LBRACK args RBRACK expr       { ASTAbs($2, $4) }
 
 exprs:
@@ -61,8 +67,8 @@ simpleType:
 ;
 
 types:
-    simpleType                    { Ast.FuncType($1, Ast.Empty) }
-  | simpleType STAR types         { Ast.FuncType($1, $3) }
+    simpleType                   { Ast.FuncType($1, Ast.Empty) }
+  | simpleType TIMES types        { Ast.FuncType($1, $3) }
 ;
 
 arg:
@@ -71,8 +77,6 @@ arg:
 
 args:
     arg                           { Ast.Args($1, Ast.EmptyArg) }
- // arg EOL                       { Ast.args($1, Ast.emptyArg) } pour tester la règle
- // seule 
   | arg COMMA args                { Ast.Args($1, $3) } 
   ;
 
@@ -93,7 +97,7 @@ cmds:
   ;
 
 prog:
-    LBRACK cmds RBRACK EOL                  { $2 }
+    LBRACK cmds RBRACK                  { $2 }
   ;
       
       

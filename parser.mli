@@ -8,6 +8,11 @@ type token =
   | MINUS
   | TIMES
   | DIV
+  | EQ
+  | LT
+  | NOT
+  | AND
+  | OR
   | LPAR
   | RPAR
   | LBRACK
@@ -25,5 +30,5 @@ type token =
   | REC
   | ECHO
 
-val expr :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.expr
+val prog :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmds

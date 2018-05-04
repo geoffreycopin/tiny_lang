@@ -5,6 +5,7 @@ let rec print_prolog e =
   | ASTNum(n) -> Printf.printf "%d" n
   | ASTBool(b) -> Printf.printf "%b" b
   | ASTId(id) -> Printf.printf "%s" id
+  | ASTNot(e) -> print_string "not("; print_prolog e; print_string ")"
   | ASTIf(cond, cons, alt) -> print_if cons cond alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
   | ASTApplication(first, next) -> print_application first next;
@@ -132,8 +133,8 @@ let print_commands c =
   in
   print_commands_rec c;
   print_string "]"
-											    
-    
+
+  
 let () =
   try
     let lexbuf = Lexing.from_channel stdin in
