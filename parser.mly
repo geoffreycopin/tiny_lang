@@ -19,9 +19,9 @@
 %token REC
 %token ECHO
        
-%start prog
+%start expr
 
-%type <Ast.cmd list> line
+%type <Ast.expr> line
 %type <Ast.apsType> simpleType
 %type <Ast.apsType list> types
 %type <Ast.arg list> args
@@ -35,7 +35,7 @@
 %%
   
 line:
-prog EOL                     { $1 }
+expr EOL                     { $1 }
 ;
 
 expr:

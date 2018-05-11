@@ -6,7 +6,7 @@ let rec print_prolog e =
   | ASTBool(b) -> Printf.printf "%b" b
   | ASTId(id) -> Printf.printf "%s" id
   | ASTNot(e) -> print_string "not("; print_prolog e; print_string ")"
-  | ASTIf(cond, cons, alt) -> print_if cons cond alt
+  | ASTIf(cond, cons, alt) -> print_if cond cons alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
   | ASTApplication(first, next) -> print_application first next;
   | ASTAbs(args, expr) -> print_abs args expr

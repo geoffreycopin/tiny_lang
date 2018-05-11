@@ -57,6 +57,9 @@ type dec =
 let rec args_type args =
   List.map (type_of_arg) args
 
+let rec args_name args =
+  List.map (fun a -> let Arg(name, _) = a in name) args
+
 let fun_type t args =
   ArrowType((args_type args), t)
 
