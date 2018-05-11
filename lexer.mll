@@ -4,14 +4,19 @@
 }
 
 rule token = parse 
-    [' ' '\t'] 	   { token lexbuf }
-  | ['\n']	   { EOL }
+    [' ' '\t' '\n'] 	   { token lexbuf }
   | ['0'-'9']+('.'['0'-'9'])? as lxm { NUM(int_of_string lxm) }
+  | "*"	           { STAR }
   | "if"           { IF }
-  | "+"            { PLUS }
-  | "-"	           { MINUS }
-  | "*"	           { TIMES }
-  | "/"	           { DIV }
+  | "add"          { PLUS }
+  | "sub"	   { MINUS }
+  | "mul"	   { TIMES }
+  | "div"	   { DIV }
+  | "eq"	   { EQ }
+  | "lt"           { LT }
+  | "not"          { NOT }
+  | "and"	   { AND }
+  | "or"	   { OR }
   | "true" 	   { TRUE}
   | "false" 	   { FALSE }
   | '('		   { LPAR }
@@ -23,8 +28,7 @@ rule token = parse
   | "CONST"        { CONST }		   
   | "REC"          { REC }
   | "FUN"          { FUN }
-  | "ECHO"         { ECHO }		   
-  | '*'            { STAR }
+  | "ECHO"         { ECHO }
   | "->"           { ARROW }
   | ':'            { COLON }
   | ','            { COMMA }

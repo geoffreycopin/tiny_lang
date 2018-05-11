@@ -2,11 +2,12 @@
     open Ast
 %}
 
+%token STAR
 %token <int> NUM
 %token <string> IDENT
 %token TRUE FALSE
 %token IF
-%token PLUS MINUS TIMES DIV
+%token PLUS MINUS TIMES DIV EQ LT NOT AND OR
 %token LPAR RPAR LBRACK RBRACK
 %token EOL
 %token BOOL INT 
@@ -18,22 +19,23 @@
 %token REC
 %token ECHO
        
-%start expr
+%start prog
 
-%type <Ast.expr> line
+%type <Ast.cmd list> line
 %type <Ast.apsType> simpleType
-%type <Ast.arg> arg
-%type <Ast.args> args				       
+%type <Ast.apsType list> types
+%type <Ast.arg list> args
+%type <Ast.arg> arg				       
 %type <Ast.expr> expr
 %type <Ast.dec> dec
 %type <Ast.stat> stat
-%type <Ast.cmds> cmds				   
-%type <Ast.cmds> prog
+%type <Ast.cmd list> cmds				   
+%type <Ast.cmd list> prog
 		   
 %%
   
 line:
-expr EOL                     { $1 }
+prog EOL                     { $1 }
 ;
 
 expr:
@@ -47,6 +49,11 @@ expr:
   | LPAR MINUS expr expr RPAR     { ASTPrim(Ast.Sub, $3, $4) }
   | LPAR TIMES expr expr RPAR     { ASTPrim(Ast.Mul, $3, $4) }
   | LPAR DIV expr expr RPAR       { ASTPrim(Ast.Div, $3, $4) }
+  | LPAR EQ expr expr RPAR        { ASTPrim(Ast.Eq, $3, $4) }
+  | LPAR LT expr expr RPAR        { ASTPrim(Ast.Lt, $3, $4) }
+  | LPAR AND expr expr RPAR       { ASTPrim(Ast.And, $3, $4) }
+  | LPAR OR expr expr RPAR        { ASTPrim(Ast.Or, $3, $4) }
+  | LPAR NOT expr RPAR            { ASTNot($3) }
   | LBRACK args RBRACK expr       { ASTAbs($2, $4) }
 
 exprs:
@@ -61,8 +68,8 @@ simpleType:
 ;
 
 types:
-    simpleType                    { Ast.FuncType($1, Ast.Empty) }
-  | simpleType STAR types         { Ast.FuncType($1, $3) }
+    simpleType                   { [ $1 ] }
+  | simpleType STAR types        { $1::$3 }
 ;
 
 arg:
@@ -70,10 +77,8 @@ arg:
 ;
 
 args:
-    arg                           { Ast.Args($1, Ast.EmptyArg) }
- // arg EOL                       { Ast.args($1, Ast.emptyArg) } pour tester la règle
- // seule 
-  | arg COMMA args                { Ast.Args($1, $3) } 
+    arg                           { [ $1 ] }
+  | arg COMMA args                { $1::$3 } 
   ;
 
 dec:
@@ -87,13 +92,13 @@ stat:
   ;
 
 cmds:
-    stat                                 { Ast.StatCmd($1, Ast.EmptyCmd) }
-  | dec SEMICOLON cmds                   { Ast.DecCmd ($1, $3) }
-  | stat SEMICOLON cmds                  { Ast.StatCmd($1, $3) }
+    stat                                 { [ Ast.StatCmd($1)] }
+  | dec SEMICOLON cmds                   { Ast.DecCmd($1)::$3 }
+  | stat SEMICOLON cmds                  { Ast.StatCmd($1)::$3 }
   ;
 
 prog:
-    LBRACK cmds RBRACK EOL                  { $2 }
+    LBRACK cmds RBRACK                  { $2 }
   ;
       
       

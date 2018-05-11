@@ -1,4 +1,5 @@
 type token =
+  | STAR
   | NUM of (int)
   | IDENT of (string)
   | TRUE
@@ -8,6 +9,11 @@ type token =
   | MINUS
   | TIMES
   | DIV
+  | EQ
+  | LT
+  | NOT
+  | AND
+  | OR
   | LPAR
   | RPAR
   | LBRACK
@@ -15,7 +21,6 @@ type token =
   | EOL
   | BOOL
   | INT
-  | STAR
   | ARROW
   | COLON
   | SEMICOLON
@@ -25,5 +30,5 @@ type token =
   | REC
   | ECHO
 
-val expr :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.expr
+val prog :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmd list
