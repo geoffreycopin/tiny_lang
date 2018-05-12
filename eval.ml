@@ -46,7 +46,7 @@ let rec eval_expr env expr =
   | ASTNot(e) -> eval_ast_not env e
   | ASTIf(cond, cons, alt) -> eval_if env cond cons alt
   | ASTAbs(args, e) -> Closure(e, env, args_name args)
-  | _ -> failwith "Unsupported operation"
+  | ASTApplication(e, args) -> eval_app env e args
 
 and eval_ast_prim env op e1 e2 =
   let v1 = int_of_value (eval_expr env e1) in
@@ -65,10 +65,45 @@ and eval_if env cond cons alt =
   | Num(1) -> eval_expr env cons
   | Num(0) -> eval_expr env alt
   | _ -> failwith "This program is not properly typed !"
-			  
+
+and eval_app env e args =
+  match eval_expr env e with
+    Closure(body, closureEnv, argsNames) ->
+      let closureEnv = add_args_to_env env closureEnv argsNames args in
+      eval_expr closureEnv body
+  | _ -> failwith "This program is not preperly typed !"
+
+and add_args_to_env currentEnv newEnv names values =
+  match names, values with
+    n::names, v::values -> let newVal = eval_expr currentEnv v in
+                               let newEnv = Env.add n newVal newEnv in
+                               add_args_to_env currentEnv newEnv names values
+  | _ -> newEnv
+
+let eval_statement env s =
+  match s with
+    Echo(e) -> print_int (int_of_value (eval_expr env e))
+
+let eval_declaration env d =
+  match d with
+    Const(name, _, e) -> Env.add name (eval_expr env e) env
+  | Fun(name, _, args, e) -> let c = Closure(e, env, args_name args) in
+                             Env.add name c env
+  | _ -> failwith "Unsupported Operation !"
+
+let rec eval_prog env cmds =
+  match cmds with
+    StatCmd(s)::t -> eval_statement env s; eval_prog env t
+  | DecCmd(d)::t -> let env = eval_declaration env d in
+                    eval_prog env t
+  | [] -> ()
+        
 let () =
   try
     let lexbuf = Lexing.from_channel stdin in
-    let e = Parser.expr Lexer.token lexbuf in
-    print_endline (string_of_value (eval_expr Env.empty e))
+    let e = Parser.prog Lexer.token lexbuf in
+    eval_prog Env.empty e;
+    print_char '\n'
   with Lexer.Eof -> exit 0
+
+let type_of_arg a = let Arg(_, t) = a in t

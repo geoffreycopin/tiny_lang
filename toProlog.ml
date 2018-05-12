@@ -10,7 +10,6 @@ let rec print_prolog e =
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
   | ASTApplication(first, next) -> print_application first next;
   | ASTAbs(args, expr) -> print_abs args expr
-  | ASTEmpty -> ()
 
 and print_prim op e1 e2 =
   Printf.printf "%s(" (string_of_op op);
@@ -28,17 +27,18 @@ and print_if cond cons alt =
   print_prolog alt;
   Printf.printf ")"
 
-and print_application first next =
-  print_string "app(";
-  let rec print_application_rec first next =
-    print_prolog first;
-    match next with
-    | ASTEmpty -> ()
-    | ASTApplication (h, t) -> print_string ", "; print_application_rec h t
-    | _ as e -> print_prolog e
+and print_application func args =
+  let rec print_args args =
+    match args with
+      [h] -> print_prolog h
+    | h::t -> print_prolog h; print_string ", "; print_args t;
+    | _ -> ()
   in
-  print_application_rec first next;
-  print_string ")"
+  print_string "app(";
+  print_prolog func;
+  print_string ", [";
+  print_args args;
+  print_string "])"
 
 and print_type t =
   match t with
@@ -52,8 +52,14 @@ and print_type t =
      print_string ")"
 
 and print_types t =
+  let rec print_types_rec types =
+    match types with
+      [h] -> print_type h
+    | h::t -> print_type h; print_string ", "; print_types_rec t
+    | [] -> ()
+  in
   print_string "[";
-  List.iter (print_type) t;
+  print_types_rec t;
   print_string "]"
 
 and print_arg a =

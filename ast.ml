@@ -30,8 +30,6 @@ let op_of_string op =
   | _ -> raise (OpConversion op)
 
 type arg = Arg of string * apsType
-
-let type_of_arg a = let Arg(_, t) = a in t
 			     
 type expr =
   ASTNum of int
@@ -40,14 +38,8 @@ type expr =
 | ASTPrim of op * expr * expr
 | ASTNot of expr
 | ASTIf of expr * expr * expr
-| ASTApplication of expr * expr
+| ASTApplication of expr * expr list
 | ASTAbs of arg list * expr
-| ASTEmpty
-	       
-let is_empty ast =
-  match ast with
-  | ASTEmpty -> false
-  | _ -> true
 
 type dec =
     Const of string * apsType * expr
@@ -55,7 +47,7 @@ type dec =
   | FunRec of string * apsType * arg list * expr
   
 let rec args_type args =
-  List.map (type_of_arg) args
+  List.map (fun a -> let Arg(_, t) = a in t) args
 
 let rec args_name args =
   List.map (fun a -> let Arg(name, _) = a in name) args

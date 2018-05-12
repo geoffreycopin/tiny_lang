@@ -30,5 +30,5 @@ type token =
   | REC
   | ECHO
 
-val expr :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.expr
+val prog :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmd list

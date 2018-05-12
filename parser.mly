@@ -19,7 +19,7 @@
 %token REC
 %token ECHO
        
-%start expr
+%start prog
 
 %type <Ast.expr> line
 %type <Ast.apsType> simpleType
@@ -27,6 +27,7 @@
 %type <Ast.arg list> args
 %type <Ast.arg> arg				       
 %type <Ast.expr> expr
+%type <Ast.expr list> exprs
 %type <Ast.dec> dec
 %type <Ast.stat> stat
 %type <Ast.cmd list> cmds				   
@@ -57,8 +58,8 @@ expr:
   | LBRACK args RBRACK expr       { ASTAbs($2, $4) }
 
 exprs:
-    expr                          { ASTApplication($1, ASTEmpty) } 
-  | expr exprs                    { ASTApplication($1, $2) }
+    expr                          { [$1] } 
+  | expr exprs                    { $1::$2 }
 ;
 
 simpleType:
