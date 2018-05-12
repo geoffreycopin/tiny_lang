@@ -1,7 +1,10 @@
 /*set_prolog_flag(double_quotes, string).*/
 
 addEnv(G, [], G).
-addEnv(G, L, X) :- append(X, G, L), !.
+addEnv(G, L, X) :- append(G, L, X), !.
+
+argsType([], []).
+argsType([(_, AT)|T], X) :- argsType(T, X1), append(X1, [AT], X), !.
 
 typeEnv([(ID, X)|_], ID, X).
 typeEnv([_|T], ID, X) :- typeEnv(T, ID, X).
@@ -32,7 +35,7 @@ typeExpr(_, [], []).
 typeExpr(G, [H|T], [X1|X2]) :- typeExpr(G, H, X1), typeExpr(G, T, X2), !.
     
 typeExpr(G, app(ID, ARGS), X) :- typeExpr(G, ID, arrow(AT, X)), typeExpr(G, ARGS, AT), !.
-typeExpr(G, abs(ARGS, E), X) :- addEnv(G, ARGS, G1), typeExpr(G1, E, X).   
+typeExpr(G, abs(ARGS, E), arrow(AT, X)) :- append(G, ARGS, G1), typeExpr(G1, E, X), argsType(ARGS, AT).   
 
 
 
