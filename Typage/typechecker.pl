@@ -47,8 +47,12 @@ typeExpr(G, abs(ARGS, E), arrow(AT, X)) :- append(G, ARGS, G1), typeExpr(G1, E, 
 
 
 typeDec(G, const(ID, T, E), X) :- typeExpr(G, E, T), append(G, [(ID, T)], X), !.
-typeDec(G, fun(ID, arrow(FT, T), PARAMS,Body), X) :- addEnv(G, PARAMS, G1), typeExpr(G1, Body, T), addEnv(G, [(ID, arrow(FT, T))], X), !.
-typeDec(G, funRec(ID, T, PARAMS, Body), X) :- addEnv(G, [(ID, T)], X), typeExpr(G, Body, T), !.
+typeDec(G, fun(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
+						     typeExpr(G1, Body, T),
+						     addEnv(G, [(ID, arrow(FT, T))], X), !.
+typeDec(G, funRec(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
+						     append(G1, [(ID, arrow(FT, T))], X),
+						     typeExpr(X, Body, T), !.
 typeStat(G, echo(E), void).
 
 typeCmds(G, [], void).
