@@ -4,7 +4,7 @@ let rec print_prolog e =
   match e with
   | ASTNum(n) -> Printf.printf "%d" n
   | ASTBool(b) -> Printf.printf "%b" b
-  | ASTId(id) -> Printf.printf "%s" id
+  | ASTId(id) -> Printf.printf "\"%s\"" id
   | ASTNot(e) -> print_string "not("; print_prolog e; print_string ")"
   | ASTIf(cond, cons, alt) -> print_if cond cons alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
@@ -64,9 +64,9 @@ and print_types t =
 
 and print_arg a =
   let Arg(ident, t) = a in
-  print_string "(";
+  print_string "(\"";
   print_string ident;
-  print_string ", ";
+  print_string "\", ";
   print_type t;
   print_string ")"
       
@@ -90,22 +90,19 @@ and print_abs a e =
 			       
 let print_dec d =
   match d with
-  | Const(id, t, e) -> print_string "const(";
-		       print_string (id ^ ", ");
+  | Const(id, t, e) -> Printf.printf "const(\"%s\", " id;
 		       print_type t;
 		       print_string ", ";
 		       print_prolog e;
-	               print_string ")"
-  | Fun(id, t, a, e) -> print_string "fun(";
-		        print_string (id ^ ", ");
+	               print_char ')'
+  | Fun(id, t, a, e) -> Printf.printf "fun(\"%s\", " id;
 		        print_type (fun_type t a);
 			print_string ", ";
 		        print_args a;
 			print_string ", ";
 		        print_prolog e;
 		        print_string ")"
-  | FunRec(id, t, a, e) -> print_string "funRec(";
-			   print_string (id ^ ", ");
+  | FunRec(id, t, a, e) -> Printf.printf "funRec(\"%s\", " id;
 			   print_type (fun_type t a);
 			   print_string ", ";
 			   print_args a;
