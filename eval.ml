@@ -5,11 +5,13 @@ module Env = Map.Make(String)
 type value =
   Num of int
 | Closure of expr * value Env.t * string list
+| RecClosure of string * expr * value Env.t * string list
 
 let string_of_value v =
   match v with
     Num(n) -> "Num(" ^ string_of_int n ^ ")"
   | Closure(_) -> "Closure"
+  | RecClosure(_) -> "RecClosure"
 
 let int_of_value v =
   match v with
@@ -71,6 +73,10 @@ and eval_app env e args =
     Closure(body, closureEnv, argsNames) ->
       let closureEnv = add_args_to_env env closureEnv argsNames args in
       eval_expr closureEnv body
+  | RecClosure(name, body, closureEnv, argsNames) as rc ->
+     let closureEnv = add_args_to_env env closureEnv argsNames args in
+     let closureEnv = Env.add name rc closureEnv in
+     eval_expr closureEnv body
   | _ -> failwith "This program is not preperly typed !"
 
 and add_args_to_env currentEnv newEnv names values =
@@ -82,14 +88,15 @@ and add_args_to_env currentEnv newEnv names values =
 
 let eval_statement env s =
   match s with
-    Echo(e) -> print_int (int_of_value (eval_expr env e))
+    Echo(e) -> print_int (int_of_value (eval_expr env e)); print_char '\n'
 
 let eval_declaration env d =
   match d with
     Const(name, _, e) -> Env.add name (eval_expr env e) env
   | Fun(name, _, args, e) -> let c = Closure(e, env, args_name args) in
                              Env.add name c env
-  | _ -> failwith "Unsupported Operation !"
+  | FunRec(name, _, args, e) -> let rc = RecClosure(name, e, env, args_name args) in
+                                Env.add name rc env
 
 let rec eval_prog env cmds =
   match cmds with
@@ -103,7 +110,6 @@ let () =
     let lexbuf = Lexing.from_channel stdin in
     let e = Parser.prog Lexer.token lexbuf in
     eval_prog Env.empty e;
-    print_char '\n'
   with Lexer.Eof -> exit 0
 
 let type_of_arg a = let Arg(_, t) = a in t
