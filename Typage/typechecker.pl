@@ -1,5 +1,12 @@
 /*set_prolog_flag(double_quotes, string).*/
 
+:- initialization main.
+
+main :-
+    read(user_input, T),
+    typeProg(T, R),
+    print(R).
+
 addEnv(G, [], G).
 addEnv(G, L, X) :- append(G, L, X), !.
 
@@ -40,20 +47,13 @@ typeExpr(G, abs(ARGS, E), arrow(AT, X)) :- append(G, ARGS, G1), typeExpr(G1, E, 
 
 
 typeDec(G, const(ID, T, E), X) :- typeExpr(G, E, T), append(G, [(ID, T)], X), !.
-typeDec(G, fun(ID, PARAMS, arrow(FT, T), Body), X) :- addEnv(G, PARAMS, G1), typeExpr(G1, Body, T), addEnv(G, [(ID, arrow(FT, T))], X), !.
-typeDec(G, funRec(ID, PARAMS, T, Body), X) :- addEnv(G, [(ID, T)], X), typeExpr(G, Body, T), !.
+typeDec(G, fun(ID, arrow(FT, T), PARAMS,Body), X) :- addEnv(G, PARAMS, G1), typeExpr(G1, Body, T), addEnv(G, [(ID, arrow(FT, T))], X), !.
+typeDec(G, funRec(ID, T, PARAMS, Body), X) :- addEnv(G, [(ID, T)], X), typeExpr(G, Body, T), !.
 typeStat(G, echo(E), void).
 
 typeCmds(G, [], void).
 typeCmds(G, [H|T], void) :- typeDec(G, H, G1), typeCmds(G1, T, void).
 typeCmds(G, [H|T], void) :- typeStat(G, H, void), typeCmds(G, T, void).
 
-typeProg(T, OK) :- typeCmds([], T, void).
-typeProg(T, KO).
-
-main_stdin :-
-    read(user_input,T),
-    typeProg(T,R),
-    print(R),
-    nl,
-    exitCode(R).
+typeProg(T, ok) :- typeCmds([], T, void).
+typeProg(T, ko).

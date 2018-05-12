@@ -14,7 +14,7 @@ let rec print_prolog e =
 and print_prim op e1 e2 =
   Printf.printf "%s(" (string_of_op op);
   print_prolog e1;
-  Printf.printf " ";
+  Printf.printf ", ";
   print_prolog e2;
   Printf.printf ")"
 
@@ -137,5 +137,5 @@ let () =
     let lexbuf = Lexing.from_channel stdin in
     let e = Parser.prog Lexer.token lexbuf in
     print_commands e;
-    print_char '\n'
+    print_char '.'
   with Lexer.Eof -> exit 0
