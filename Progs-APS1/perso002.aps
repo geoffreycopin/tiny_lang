@@ -1,0 +1,6 @@
+[
+	PROC REC foo [n: int] [
+	     ECHO n
+	];
+	CALL foo 1
+]

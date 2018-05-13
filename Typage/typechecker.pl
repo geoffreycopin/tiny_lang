@@ -17,6 +17,8 @@ argsType([(_, AT)|T], X) :- argsType(T, X1), append(X1, [AT], X), !.
 typeEnv([(ID, X)|_], ID, X).
 typeEnv([_|T], ID, X) :- typeEnv(T, ID, X).
 
+/* EXPRESSIONS */
+
 typeExpr(_, true, bool).
 typeExpr(_, false, bool).
 
@@ -47,6 +49,8 @@ typeExpr(G, abs(ARGS, E), arrow(AT, X)) :- append(G, ARGS, G1), typeExpr(G1, E, 
 
 
 
+/* DECLARATIONS */
+
 typeDec(G, const(ID, T, E), X) :- typeExpr(G, E, T), append(G, [(ID, T)], X), !.
 typeDec(G, fun(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
 						     typeExpr(G1, Body, T),
@@ -54,7 +58,30 @@ typeDec(G, fun(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
 typeDec(G, funRec(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
 						     append(G1, [(ID, arrow(FT, T))], X),
 						     typeExpr(X, Body, T), !.
+typeDec(G, var(ID, T), X) :- append(G, [(ID, T)], X).
+typeDec(G, proc(ID, ARGS, PROG), X) :- append(G, ARGS, G1),
+				       typeCmds(G1, PROG, void),
+				       argsType(ARGS, AT),
+				       append(G, [(ID, arrow(AT, void))], X), !.
+typeDec(G, procRec(ID, ARGS, PROG), X) :- append(G, ARGS, G1),
+				          append(G1, [(ID, arrow(AT, void))], X),
+				          typeCmds(X, PROG, void),
+				          argsType(ARGS, AT), !.
+
+
+
+
+/* INSTRUCTIONS */
+
 typeStat(G, echo(E), void).
+typeStat(G, set(ID, VAL), void) :- typeExpr(G, ID, X), typeExpr(G, VAL, X), !.
+typeStat(G, if(COND, CONS, ALT), void) :- typeExpr(G, COND, bool),
+					  typeCmds(G, CONS, void),
+					  typeCmds(G, ALT, void), !.
+typeStat(G, while(COND, CMDS), void) :- typeExpr(G, COND, bool),
+					typeCmds(G, CMDS, void), !.
+typeStat(G, call(ID, ARGS), void) :- typeExpr(G, ID, arrow(ARGSTYPE, void)),
+			       typeExpr(G, ARGS, ARGSTYPE), !.
 
 typeCmds(G, [], void).
 typeCmds(G, [H|T], void) :- typeDec(G, H, G1), typeCmds(G1, T, void).
