@@ -12,15 +12,34 @@ let in_env addr env =
               
 let restrict mem env =
   Array.map (fun idx _ -> in_env idx)
+
+let num_at_address mem address =
+  match Array.get mem address with
+    Number(n) -> n
+  | _ -> failwith "Invalid adress"
+
+let alloc mem =
+  let rec alloc_addr mem_list current_addr =
+    match mem_list with
+      Free::_ -> current_addr
+    | _::t -> alloc_addr mem_list (current_addr + 1)
+    | _ -> failwith "Out of memory"
+  in
+  let addr = alloc_addr (Array.to_list mem) 0 in
+  let new_mem = Array.copy mem in
+  new_mem.(addr) <- Any;
+  addr, new_mem
          
 type value =
   Num of int
+| Address of int
 | Closure of expr * value Env.t * string list
 | RecClosure of string * expr * value Env.t * string list
 
 let string_of_value v =
   match v with
     Num(n) -> "Num(" ^ string_of_int n ^ ")"
+  | Address(n) -> "Address(" ^ string_of_int n ^ ")" 
   | Closure(_) -> "Closure"
   | RecClosure(_) -> "RecClosure"
 
@@ -49,10 +68,15 @@ let eval_binary_prim prim val1 val2 =
   | Ast.Div, v1, v2 -> v1 / v2
   | _ -> failwith "Fatal error in eval_binary_prim :'("
 
+let eval_id mem env id =
+  match Env.find id env with
+    Address(a) -> Num(num_at_address mem a)
+  | _ as other -> other
+
 let rec eval_expr mem env expr =
   match expr with
     ASTNum(n) -> Num(n)
-  | ASTId(id) -> Env.find id env
+  | ASTId(id) -> eval_id mem env id
   | ASTBool(true) -> Num(1)
   | ASTBool(false) -> Num(0)
   | ASTPrim(op, e1, e2) -> eval_ast_prim mem env op e1 e2
@@ -97,24 +121,40 @@ and add_args_to_env mem currentEnv newEnv names values =
                            add_args_to_env mem currentEnv newEnv names values
   | _ -> newEnv
 
+let eval_echo mem env e =
+  let v = (int_of_value (eval_expr mem env e)) in
+  Printf.printf "%d\n" v;
+  mem, env
+       
 let eval_statement mem env s =
   match s with
-    Echo(e) -> print_int (int_of_value (eval_expr mem env e)); print_char '\n'
+    Echo(e) -> eval_echo mem env e
   | _ -> failwith "Unsupported operation"
 
+and alloc_var mem env name =
+  let (addr, new_mem) = alloc mem in
+  let a = Address(addr) in
+  let new_env = (Env.add name a env) in
+  new_mem, new_env
+
+let eval_fun mem env r name args e =
+  let closure = if r then RecClosure(name, e, env, args_name args)
+                else Closure(e, env, args_name args) in
+  mem, Env.add name closure env
+  
 let eval_declaration mem env d =
   match d with
-    Const(name, _, e) -> Env.add name (eval_expr mem env e) env
-  | Fun(name, _, args, e) -> let c = Closure(e, env, args_name args) in
-                             Env.add name c env
-  | FunRec(name, _, args, e) -> let rc = RecClosure(name, e, env, args_name args) in
-                                Env.add name rc env
+    Const(name, _, e) -> mem, Env.add name (eval_expr mem env e) env
+  | Fun(name, _, args, e) -> eval_fun mem env false name args e
+  | FunRec(name, _, args, e) -> eval_fun mem env true name args e
+  | Var(name, _) -> alloc_var mem env name
   | _ -> failwith "Unsupported operation"
 
 let rec eval_prog mem env cmds =
   match cmds with
-    StatCmd(s)::t -> eval_statement mem env s; eval_prog mem env t
-  | DecCmd(d)::t -> let env = eval_declaration mem env d in
+    StatCmd(s)::t -> let mem, env = eval_statement mem env s in
+                     eval_prog mem env t
+  | DecCmd(d)::t -> let mem, env = eval_declaration mem env d in
                     eval_prog mem env t
   | [] -> ()
         
