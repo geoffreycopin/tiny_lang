@@ -7,22 +7,21 @@ type memory = memVal array
 
 let empty_mem = Array.make 1024 Free
 
-let in_env addr env =
-  Env.exists (fun _ v -> v = addr ) env
-              
-let restrict mem env =
-  Array.map (fun idx _ -> in_env idx)
-
 let num_at_address mem address =
   match Array.get mem address with
     Number(n) -> n
   | _ -> failwith "Invalid adress"
 
+let set_val mem addr v =
+  let new_mem = Array.copy mem in
+  new_mem.(addr) <- v;
+  new_mem
+
 let alloc mem =
   let rec alloc_addr mem_list current_addr =
     match mem_list with
       Free::_ -> current_addr
-    | _::t -> alloc_addr mem_list (current_addr + 1)
+    | _::t -> alloc_addr t (current_addr + 1)
     | _ -> failwith "Out of memory"
   in
   let addr = alloc_addr (Array.to_list mem) 0 in
@@ -35,6 +34,19 @@ type value =
 | Address of int
 | Closure of expr * value Env.t * string list
 | RecClosure of string * expr * value Env.t * string list
+| PClosure of cmd list * value Env.t * string list
+| PRecClosure of string * cmd list * value Env.t * string list
+
+let addr_in_env addr env =
+  Env.exists (fun k v -> v = Address(addr)) env
+
+let restrict mem env =
+  Array.mapi (fun idx v -> if addr_in_env idx env then v else Free) mem
+
+let addr_of_value v =
+  match v with
+    Address(n) -> n
+  | _ -> failwith "Invalid address"
 
 let string_of_value v =
   match v with
@@ -42,6 +54,8 @@ let string_of_value v =
   | Address(n) -> "Address(" ^ string_of_int n ^ ")" 
   | Closure(_) -> "Closure"
   | RecClosure(_) -> "RecClosure"
+  | PClosure(_) -> "PClosure"
+  | PRecClosure(_) -> "PRecClosure"
 
 let int_of_value v =
   match v with
@@ -120,43 +134,70 @@ and add_args_to_env mem currentEnv newEnv names values =
                            let newEnv = Env.add n newVal newEnv in
                            add_args_to_env mem currentEnv newEnv names values
   | _ -> newEnv
+  
+and eval_statement mem env s =
+  match s with
+    Echo(e) -> eval_echo mem env e
+  | Set(id, e) -> eval_set mem env id e
+  | IfStat(cons, cond, alt) -> eval_if_stmt mem env cons cond alt
+  | _ -> failwith "Unsupported operation"
 
-let eval_echo mem env e =
+and eval_echo mem env e =
   let v = (int_of_value (eval_expr mem env e)) in
   Printf.printf "%d\n" v;
   mem, env
-       
-let eval_statement mem env s =
-  match s with
-    Echo(e) -> eval_echo mem env e
-  | _ -> failwith "Unsupported operation"
 
+and eval_set mem env id e =
+  let v = Number(int_of_value (eval_expr mem env e)) in
+  let addr = addr_of_value (Env.find id env) in
+  let mem = set_val mem addr v in
+  mem, env
+
+and eval_if_stmt mem env cond cons alt =
+  let mem, env1 = match eval_expr mem env cond with
+      Num(1) -> eval_block mem env cons
+    | Num(0) -> eval_block mem env alt
+    | _ -> failwith "This program is not properly typed !"
+  in
+  let mem = restrict mem env in
+  mem, env  
+  
 and alloc_var mem env name =
   let (addr, new_mem) = alloc mem in
   let a = Address(addr) in
   let new_env = (Env.add name a env) in
   new_mem, new_env
 
-let eval_fun mem env r name args e =
+and eval_fun_dec mem env r name args e =
   let closure = if r then RecClosure(name, e, env, args_name args)
                 else Closure(e, env, args_name args) in
   mem, Env.add name closure env
+
+and eval_proc_dec mem env r name args cmds =
+  let pclosure = if r then PClosure(cmds, env, args_name args)
+                 else PRecClosure(name, cmds, env, args_name args) in
+  mem, Env.add name pclosure env
   
-let eval_declaration mem env d =
+and eval_declaration mem env d =
   match d with
     Const(name, _, e) -> mem, Env.add name (eval_expr mem env e) env
-  | Fun(name, _, args, e) -> eval_fun mem env false name args e
-  | FunRec(name, _, args, e) -> eval_fun mem env true name args e
+  | Fun(name, _, args, e) -> eval_fun_dec mem env false name args e
+  | FunRec(name, _, args, e) -> eval_fun_dec mem env true name args e
   | Var(name, _) -> alloc_var mem env name
-  | _ -> failwith "Unsupported operation"
+  | Proc(name, args, cmds) -> eval_proc_dec mem env false name args cmds
+  | ProcRec(name, args, cmds) -> eval_proc_dec mem env true name args cmds
 
-let rec eval_prog mem env cmds =
+and eval_block mem env cmds =
   match cmds with
     StatCmd(s)::t -> let mem, env = eval_statement mem env s in
-                     eval_prog mem env t
+                     eval_block mem env t
   | DecCmd(d)::t -> let mem, env = eval_declaration mem env d in
-                    eval_prog mem env t
-  | [] -> ()
+                    eval_block mem env t
+  | [] -> mem, env
+                               
+and  eval_prog mem env cmds =
+  let _ = eval_block mem env cmds in
+  ()
         
 let () =
   try
@@ -164,5 +205,3 @@ let () =
     let e = Parser.prog Lexer.token lexbuf in
     eval_prog empty_mem Env.empty e;
   with Lexer.Eof -> exit 0
-
-let type_of_arg a = let Arg(_, t) = a in t
