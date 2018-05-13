@@ -6,10 +6,11 @@ type memVal = Free | Any | Number of int
 type memory = memVal array
 
 let empty_mem = Array.make 1024 Free
-
+              
 let num_at_address mem address =
   match Array.get mem address with
     Number(n) -> n
+  | Any -> failwith "Access to uninitialized memory"
   | _ -> failwith "Invalid adress"
 
 let set_val mem addr v =
@@ -140,6 +141,7 @@ and eval_statement mem env s =
     Echo(e) -> eval_echo mem env e
   | Set(id, e) -> eval_set mem env id e
   | IfStat(cons, cond, alt) -> eval_if_stmt mem env cons cond alt
+  | While(cond, b) -> eval_while mem env cond b
   | _ -> failwith "Unsupported operation"
 
 and eval_echo mem env e =
@@ -160,7 +162,15 @@ and eval_if_stmt mem env cond cons alt =
     | _ -> failwith "This program is not properly typed !"
   in
   let mem = restrict mem env in
-  mem, env  
+  mem, env
+
+and eval_while mem env cond b =
+  match eval_expr mem env cond with
+    Num(0) -> mem, env
+  | Num(1) -> let mem, env1 = eval_block mem env b in
+              let mem = restrict mem env in
+              eval_while mem env1 cond b
+  | _ -> failwith "This program is not preperly typed !"
   
 and alloc_var mem env name =
   let (addr, new_mem) = alloc mem in
