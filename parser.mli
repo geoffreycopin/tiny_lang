@@ -29,6 +29,11 @@ type token =
   | FUN
   | REC
   | ECHO
+  | VAR
+  | PROC
+  | SET
+  | WHILE
+  | CALL
 
 val prog :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmd list

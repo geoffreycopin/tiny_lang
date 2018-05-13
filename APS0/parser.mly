@@ -10,7 +10,7 @@
 %token PLUS MINUS TIMES DIV EQ LT NOT AND OR
 %token LPAR RPAR LBRACK RBRACK
 %token EOL
-%token BOOL INT VOID
+%token BOOL INT 
 %token STAR ARROW
 %token COLON SEMICOLON
 %token COMMA
@@ -18,7 +18,6 @@
 %token FUN
 %token REC
 %token ECHO
-%token VAR PROC SET IF WHILE CALL
        
 %start prog
 
@@ -66,7 +65,6 @@ exprs:
 simpleType:
     BOOL                          { Ast.Bool }
   | INT                           { Ast.Int }
-  | VOID                          { Ast.Void }
   | LPAR types ARROW simpleType RPAR { Ast.ArrowType($2, $4) }
 ;
 
@@ -88,17 +86,10 @@ dec:
     CONST IDENT simpleType expr                      { Ast.Const($2, $3, $4) }
   | FUN IDENT simpleType LBRACK args RBRACK expr     { Ast.Fun($2, $3, $5, $7) }
   | FUN REC IDENT simpleType LBRACK args RBRACK expr { Ast.FunRec($3, $4, $6, $8) }
-  | VAR IDENT simpleType                             { Ast.Var($2, $3) }
-  | PROC IDENT LBRACK args RBRACK prog               { Ast.Proc($2, $4, $6) }
-  | PROC REC IDENT LBRACK args RBRACK prog           { Ast.ProcRec($3, $5, $7) }
   ;
 
 stat:
-    ECHO expr                     { Ast.Echo($2) }
-  | SET IDENT expr                { Ast.Set($2, $3) }
-  | IF expr prog prog             { Ast.IfStat($2, $3, $4) }
-  | WHILE expr prog               { Ast.While($2, $3) }
-  | CALL IDENT exprs              { Ast.Call($2, $3) }
+  ECHO expr                     { Ast.Echo($2) }
   ;
 
 cmds:

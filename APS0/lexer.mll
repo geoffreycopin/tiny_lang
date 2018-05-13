@@ -25,17 +25,10 @@ rule token = parse
   | '['            { LBRACK }
   | "bool"         { BOOL }
   | "int"	   { INT }
-  | "void"         { VOID }
   | "CONST"        { CONST }		   
   | "REC"          { REC }
   | "FUN"          { FUN }
   | "ECHO"         { ECHO }
-  | "VAR"	   { VAR}
-  | "PROC"	   { PROC}
-  | "SET"	   { SET }
-  | "IF" 	   { IF }
-  | "WHILE" 	   { WHILE }
-  | "CALL"	   { CALL }
   | "->"           { ARROW }
   | ':'            { COLON }
   | ','            { COMMA }

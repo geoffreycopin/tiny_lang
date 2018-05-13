@@ -1,6 +1,6 @@
 exception OpConversion of string
 
-type apsType = Int | Bool | ArrowType of apsType list * apsType | Void
+type apsType = Int | Bool | ArrowType of apsType list * apsType
 
 type op = Add | Mul | Sub | Div	| Eq | Lt | Not | And | Or		      
 			      
@@ -41,22 +41,10 @@ type expr =
 | ASTApplication of expr * expr list
 | ASTAbs of arg list * expr
 
-type stat =
-  Echo of expr
-| Set of string * expr
-| IfStat of expr * cmd list * cmd list
-| While of expr * cmd list
-| Call of string * expr list
-
-and cmd =  StatCmd of stat | DecCmd of dec
-
-and dec =
+type dec =
     Const of string * apsType * expr
   | Fun of string * apsType * arg list * expr
   | FunRec of string * apsType * arg list * expr
-  | Var of string * apsType
-  | Proc of string * arg list * cmd list
-  | ProcRec of string * arg list * cmd list
   
 let rec args_type args =
   List.map (fun a -> let Arg(_, t) = a in t) args
@@ -66,4 +54,8 @@ let rec args_name args =
 
 let fun_type t args =
   ArrowType((args_type args), t)
+
+type stat = Echo of expr
+
+type cmd =  StatCmd of stat | DecCmd of dec
 					      
