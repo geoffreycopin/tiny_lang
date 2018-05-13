@@ -142,7 +142,7 @@ and eval_statement mem env s =
   | Set(id, e) -> eval_set mem env id e
   | IfStat(cons, cond, alt) -> eval_if_stmt mem env cons cond alt
   | While(cond, b) -> eval_while mem env cond b
-  | _ -> failwith "Unsupported operation"
+  | Call(name, args) -> eval_call mem env name args
 
 and eval_echo mem env e =
   let v = (int_of_value (eval_expr mem env e)) in
@@ -171,6 +171,21 @@ and eval_while mem env cond b =
               let mem = restrict mem env in
               eval_while mem env1 cond b
   | _ -> failwith "This program is not preperly typed !"
+
+and eval_call mem env name args =
+  match Env.find name env with
+    PClosure(b, e, argsNames) ->
+     let c_env = add_args_to_env mem env e argsNames args in
+     let mem, c_env = eval_block mem c_env b in
+     let mem = restrict mem env in
+     mem, env
+  | PRecClosure(name, b, e, argsNames) as pr ->
+     let c_env = add_args_to_env mem env e argsNames args in
+     let c_env = Env.add name pr c_env in
+     let mem, c_env = eval_block mem c_env b in
+     mem, env
+  | _ -> failwith "This program is not properly typed !"
+    
   
 and alloc_var mem env name =
   let (addr, new_mem) = alloc mem in
@@ -184,8 +199,8 @@ and eval_fun_dec mem env r name args e =
   mem, Env.add name closure env
 
 and eval_proc_dec mem env r name args cmds =
-  let pclosure = if r then PClosure(cmds, env, args_name args)
-                 else PRecClosure(name, cmds, env, args_name args) in
+  let pclosure = if r then PRecClosure(name, cmds, env, args_name args)
+                 else PClosure(cmds, env, args_name args) in
   mem, Env.add name pclosure env
   
 and eval_declaration mem env d =
