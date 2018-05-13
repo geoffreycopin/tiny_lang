@@ -64,8 +64,9 @@ typeDec(G, proc(ID, ARGS, PROG), X) :- append(G, ARGS, G1),
 				       argsType(ARGS, AT),
 				       append(G, [(ID, arrow(AT, void))], X), !.
 typeDec(G, procRec(ID, ARGS, PROG), X) :- append(G, ARGS, G1),
-				          append(G1, [(ID, arrow(AT, void))], X),
-				          typeCmds(X, PROG, void),
+				          append(G1, [(ID, arrow(AT, void))], G2),
+				          typeCmds(G2, PROG, void),
+					  append(G, [(ID, arrow(AT, void))], X),
 				          argsType(ARGS, AT), !.
 
 
