@@ -27,6 +27,17 @@ and print_if cond cons alt =
   print_prolog alt;
   Printf.printf ")"
 
+and print_exprs e =
+   let rec print_exprs_rec exprs =
+    match exprs with
+      [h] -> print_prolog h
+    | h::t -> print_prolog h; print_string ", "; print_exprs t;
+    | _ -> ()
+   in
+   print_char '[';
+   print_exprs_rec e;
+   print_char ']'
+  
 and print_application func args =
   let rec print_args args =
     match args with
@@ -44,6 +55,7 @@ and print_type t =
   match t with
   | Int -> print_string "int"
   | Bool -> print_string "bool"
+  | Void -> print_string "void"
   | ArrowType(h, t) ->
      print_string "arrow(";
      print_types h;
@@ -88,7 +100,7 @@ and print_abs a e =
   print_prolog e;
   print_string ")"
 			       
-let print_dec d =
+and print_dec d =
   match d with
   | Const(id, t, e) -> Printf.printf "const(\"%s\", " id;
 		       print_type t;
@@ -109,19 +121,48 @@ let print_dec d =
 			   print_string ", ";
 			   print_prolog e;
 			   print_string ")"
+  | Var(id, t) -> Printf.printf "var(\"%s\", " id;
+                  print_type t;
+                  print_char ')'
+  | Proc(id, a, cmds) -> print_proc false id a cmds
+  | ProcRec(id, a, cmds) -> print_proc true id a cmds
 
-let print_stat s =
-  let Echo(e) = s in
-  print_string "echo(";
-  print_prolog e;
-  print_string ")"
+and print_proc r id args cmds =
+  if r then print_string "procRec" else print_string "proc";
+  Printf.printf "(\"%s\", " id;
+  print_args args;
+  print_string ", ";
+  print_commands cmds;
+  print_char ')'
 
-let print_command c =
+and print_stat s =
+  match s with
+    Echo(e) -> print_string "echo("; print_prolog e; print_char ')'
+  | Set(id, expr) -> Printf.printf "set(\"%s\", " id;
+                     print_prolog expr;
+                     print_char ')'
+  | IfStat(expr, cons, alt) -> print_string "if(";
+                               print_prolog expr;
+                               print_string ", ";
+                               print_commands cons;
+                               print_string ", ";
+                               print_commands alt;
+                               print_char ')'
+  | While(expr, cmds) -> print_string "while(";
+                         print_prolog expr;
+                         print_string ", ";
+                         print_commands cmds;
+                         print_char ')'
+  | Call(id, exprs) -> Printf.printf "call(\"%s\", " id;
+                       print_exprs exprs;
+                       print_char ')'
+
+and print_command c =
   match c with
   | StatCmd(s) -> print_stat s
   | DecCmd(d) -> print_dec d
 
-let print_commands c =
+and print_commands c =
   let rec print_commands_rec (c: Ast.cmd list) =
     match c with
     | [h] -> print_command h
@@ -137,5 +178,5 @@ let () =
     let lexbuf = Lexing.from_channel stdin in
     let e = Parser.prog Lexer.token lexbuf in
     print_commands e;
-    print_char '.'
+    print_string ".\n"
   with Lexer.Eof -> exit 0

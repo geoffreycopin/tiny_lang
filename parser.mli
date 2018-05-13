@@ -21,6 +21,7 @@ type token =
   | EOL
   | BOOL
   | INT
+  | VOID
   | ARROW
   | COLON
   | SEMICOLON
