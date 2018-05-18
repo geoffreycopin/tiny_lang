@@ -54,11 +54,11 @@ typeDec(G, fun(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
 typeDec(G, funRec(ID, arrow(FT, T), PARAMS, Body), X) :- addEnv(G, PARAMS, G1),
 						     append(G1, [(ID, arrow(FT, T))], X),
 						     typeExpr(X, Body, T), !.
-typeStat(G, echo(E), void).
+typeStat(_, echo(_), void).
 
-typeCmds(G, [], void).
+typeCmds(_, [], void).
 typeCmds(G, [H|T], void) :- typeDec(G, H, G1), typeCmds(G1, T, void).
 typeCmds(G, [H|T], void) :- typeStat(G, H, void), typeCmds(G, T, void).
 
 typeProg(T, ok) :- typeCmds([], T, void).
-typeProg(T, ko).
+typeProg(_, ko).

@@ -1,0 +1,13 @@
+[
+	PROC REC foo [n: int] [
+	     IF (lt n 10)
+	     [
+	     	CALL foo (sub n 1)
+	     ]
+	     [
+		ECHO n
+	     ]
+	];
+	CALL foo 1
+	
+]
