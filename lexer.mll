@@ -19,12 +19,16 @@ rule token = parse
   | "or"	   { OR }
   | "true" 	   { TRUE}
   | "false" 	   { FALSE }
+  | "nth" 	   { NTH }
+  | "alloc"        { ALLOC }
+  | "SET"  	   { SET }
   | '('		   { LPAR }
   | ')'		   { RPAR }
   | ']'            { RBRACK }		   
   | '['            { LBRACK }
   | "bool"         { BOOL }
   | "int"	   { INT }
+  | "vec"	   { VEC }
   | "void"         { VOID }
   | "CONST"        { CONST }		   
   | "REC"          { REC }

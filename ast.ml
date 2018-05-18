@@ -1,6 +1,11 @@
 exception OpConversion of string
 
-type apsType = Int | Bool | ArrowType of apsType list * apsType | Void
+type apsType =
+  Int
+| Bool
+| ArrowType of apsType list * apsType
+| Void
+| Vec of apsType
 
 type op = Add | Mul | Sub | Div	| Eq | Lt | Not | And | Or		      
 			      
@@ -37,13 +42,15 @@ type expr =
 | ASTBool of bool
 | ASTPrim of op * expr * expr
 | ASTNot of expr
+| ASTAlloc of expr
+| ASTNth of expr * expr
 | ASTIf of expr * expr * expr
 | ASTApplication of expr * expr list
 | ASTAbs of arg list * expr
 
 type stat =
   Echo of expr
-| Set of string * expr
+| Set of expr * expr
 | IfStat of expr * cmd list * cmd list
 | While of expr * cmd list
 | Call of string * expr list

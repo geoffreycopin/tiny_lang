@@ -10,7 +10,7 @@
 %token PLUS MINUS TIMES DIV EQ LT NOT AND OR
 %token LPAR RPAR LBRACK RBRACK
 %token EOL
-%token BOOL INT VOID
+%token BOOL INT VOID VEC
 %token STAR ARROW
 %token COLON SEMICOLON
 %token COMMA
@@ -19,6 +19,7 @@
 %token REC
 %token ECHO
 %token VAR PROC SET IF WHILE CALL
+%token SET NTH ALLOC
        
 %start prog
 
@@ -56,6 +57,8 @@ expr:
   | LPAR AND expr expr RPAR       { ASTPrim(Ast.And, $3, $4) }
   | LPAR OR expr expr RPAR        { ASTPrim(Ast.Or, $3, $4) }
   | LPAR NOT expr RPAR            { ASTNot($3) }
+  | LPAR ALLOC expr RPAR 	  { ASTAlloc($3) }
+  | LPAR NTH expr expr RPAR       { ASTNth($3, $4) }	
   | LBRACK args RBRACK expr       { ASTAbs($2, $4) }
 
 exprs:
@@ -68,11 +71,12 @@ simpleType:
   | INT                           { Ast.Int }
   | VOID                          { Ast.Void }
   | LPAR types ARROW simpleType RPAR { Ast.ArrowType($2, $4) }
+  | LPAR VEC simpleType RPAR      { Ast.Vec($3) }	
 ;
 
 types:
     simpleType                   { [ $1 ] }
-  | simpleType STAR types        { $1::$3 }
+  | simpleType STAR types        { $1::$3 }	
 ;
 
 arg:
@@ -95,10 +99,15 @@ dec:
 
 stat:
     ECHO expr                     { Ast.Echo($2) }
-  | SET IDENT expr                { Ast.Set($2, $3) }
+  | SET lval expr                 { Ast.Set($2, $3) }
   | IF expr prog prog             { Ast.IfStat($2, $3, $4) }
   | WHILE expr prog               { Ast.While($2, $3) }
   | CALL IDENT exprs              { Ast.Call($2, $3) }
+  ;
+
+lval:
+    IDENT                         { ASTId($1) }
+  | LPAR NTH lval expr RPAR       { ASTNth($3, $4) }
   ;
 
 cmds:

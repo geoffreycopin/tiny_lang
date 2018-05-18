@@ -6,6 +6,9 @@ let rec print_prolog e =
   | ASTBool(b) -> Printf.printf "%b" b
   | ASTId(id) -> Printf.printf "\"%s\"" id
   | ASTNot(e) -> print_string "not("; print_prolog e; print_string ")"
+  | ASTAlloc(e) -> print_string "alloc("; print_prolog e; print_char ')'
+  | ASTNth(e1, e2) -> print_string "nth("; print_prolog e1; print_string ", ";
+                      print_prolog e2; print_char ')'
   | ASTIf(cond, cons, alt) -> print_if cond cons alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
   | ASTApplication(first, next) -> print_application first next;
@@ -62,6 +65,7 @@ and print_type t =
      print_string ", ";
      print_type t;
      print_string ")"
+  | Vec(t) -> print_string "vec("; print_type t; print_char ')'
 
 and print_types t =
   let rec print_types_rec types =
@@ -138,9 +142,11 @@ and print_proc r id args cmds =
 and print_stat s =
   match s with
     Echo(e) -> print_string "echo("; print_prolog e; print_char ')'
-  | Set(id, expr) -> Printf.printf "set(\"%s\", " id;
-                     print_prolog expr;
-                     print_char ')'
+  | Set(e1, e2) -> Printf.printf "set(";
+                    print_prolog e1;
+                    print_string ", ";
+                    print_prolog e2;
+                    print_char ')'
   | IfStat(expr, cons, alt) -> print_string "if(";
                                print_prolog expr;
                                print_string ", ";
@@ -156,7 +162,7 @@ and print_stat s =
   | Call(id, exprs) -> Printf.printf "call(\"%s\", " id;
                        print_exprs exprs;
                        print_char ')'
-
+                    
 and print_command c =
   match c with
   | StatCmd(s) -> print_stat s

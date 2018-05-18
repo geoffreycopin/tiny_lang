@@ -22,6 +22,7 @@ type token =
   | BOOL
   | INT
   | VOID
+  | VEC
   | ARROW
   | COLON
   | SEMICOLON
@@ -35,6 +36,8 @@ type token =
   | SET
   | WHILE
   | CALL
+  | NTH
+  | ALLOC
 
 val prog :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmd list
