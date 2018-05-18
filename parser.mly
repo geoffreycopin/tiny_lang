@@ -19,7 +19,7 @@
 %token REC
 %token ECHO
 %token VAR PROC SET IF WHILE CALL
-%token SET NTH ALLOC
+%token SET NTH ALLOC LEN
        
 %start prog
 
@@ -58,7 +58,8 @@ expr:
   | LPAR OR expr expr RPAR        { ASTPrim(Ast.Or, $3, $4) }
   | LPAR NOT expr RPAR            { ASTNot($3) }
   | LPAR ALLOC expr RPAR 	  { ASTAlloc($3) }
-  | LPAR NTH expr expr RPAR       { ASTNth($3, $4) }	
+  | LPAR NTH expr expr RPAR       { ASTNth($3, $4) }
+  | LPAR LEN expr RPAR            { ASTLen($3) }	
   | LBRACK args RBRACK expr       { ASTAbs($2, $4) }
 
 exprs:

@@ -44,6 +44,7 @@ type expr =
 | ASTNot of expr
 | ASTAlloc of expr
 | ASTNth of expr * expr
+| ASTLen of expr
 | ASTIf of expr * expr * expr
 | ASTApplication of expr * expr list
 | ASTAbs of arg list * expr

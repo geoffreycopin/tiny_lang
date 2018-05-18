@@ -38,6 +38,7 @@ type token =
   | CALL
   | NTH
   | ALLOC
+  | LEN
 
 val prog :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Ast.cmd list

@@ -9,6 +9,7 @@ let rec print_prolog e =
   | ASTAlloc(e) -> print_string "alloc("; print_prolog e; print_char ')'
   | ASTNth(e1, e2) -> print_string "nth("; print_prolog e1; print_string ", ";
                       print_prolog e2; print_char ')'
+  | ASTLen(e) -> print_string "len("; print_prolog e; print_char ')'
   | ASTIf(cond, cons, alt) -> print_if cond cons alt
   | ASTPrim(op, e1, e2) -> print_prim op e1 e2
   | ASTApplication(first, next) -> print_application first next;

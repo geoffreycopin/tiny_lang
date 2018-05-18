@@ -48,6 +48,9 @@ typeExpr(G, [H|T], [X1|X2]) :- typeExpr(G, H, X1), typeExpr(G, T, X2), !.
 typeExpr(G, app(ID, ARGS), X) :- typeExpr(G, ID, arrow(AT, X)), typeExpr(G, ARGS, AT), !.
 typeExpr(G, abs(ARGS, E), arrow(AT, X)) :- append(G, ARGS, G1), typeExpr(G1, E, X), argsType(ARGS, AT).   
 
+typeExpr(G, alloc(E), vec(_)) :- typeExpr(G, E, int), !.
+typeExpr(G, nth(E1, E2), X) :- typeExpr(G, E1, vec(X)), typeExpr(G, E2, int), !.
+typeExpr(G, len(E), int) :- typeExpr(G, E, vec(_)), !.
 
 
 /* DECLARATIONS */

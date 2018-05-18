@@ -21,6 +21,7 @@ rule token = parse
   | "false" 	   { FALSE }
   | "nth" 	   { NTH }
   | "alloc"        { ALLOC }
+  | "len"          { LEN }
   | "SET"  	   { SET }
   | '('		   { LPAR }
   | ')'		   { RPAR }
